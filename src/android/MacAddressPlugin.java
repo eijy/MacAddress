@@ -29,7 +29,7 @@ public class MacAddressPlugin extends CordovaPlugin {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.apache.cordova.api.Plugin#execute(java.lang.String,
      * org.json.JSONArray, java.lang.String)
      */
@@ -66,7 +66,7 @@ public class MacAddressPlugin extends CordovaPlugin {
 
     /**
      * Gets the mac address.
-     * 
+     *
      * @return the mac address
      */
     private String getMacAddress() {
@@ -74,14 +74,14 @@ public class MacAddressPlugin extends CordovaPlugin {
         if (Build.VERSION.SDK_INT >= 23) { // Build.VERSION_CODES.M
             return getMMacAddress();
         }
-        
+
         return getLegacyMacAddress();
 
     }
 
     /**
      * Gets the mac address on version < Marshmallow.
-     * 
+     *
      * @return the mac address
      */
     private String getLegacyMacAddress() {
@@ -101,35 +101,35 @@ public class MacAddressPlugin extends CordovaPlugin {
 
     /**
      * Gets the mac address on version >= Marshmallow.
-     * 
+     *
      * @return the mac address
      */
     private String getMMacAddress() {
+      try {
+        List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+        for (NetworkInterface nif : all) {
+          if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
 
-        try {
-            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+          byte[] macBytes = nif.getHardwareAddress();
+          if (macBytes == null) {
+            return "";
+          }
 
-            for (NetworkInterface nif : all) {
-                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
-
-                byte[] macBytes = nif.getHardwareAddress();
-                if (macBytes == null) {
-                    return "";
-                }
-
-                StringBuilder res1 = new StringBuilder();
-                for (byte b : macBytes) {
-                    res1.append(String.format("%02x", (b & 0xFF)) + ":");
-                }
-
-                if (res1.length() > 0) {
-                    res1.deleteCharAt(res1.length() - 1);
-                }
-
-                return res1.toString();
+          StringBuilder res1 = new StringBuilder();
+          for (byte b : macBytes) {
+            if (b <15 & b>0){
+              res1.append("0" + Integer.toHexString(b & 0xFF) + ":");
+            } else {
+              res1.append(Integer.toHexString(b & 0xFF) + ":");
             }
-        } catch (Exception ex) { }
-
-        return "02:00:00:00:00:00";
+          }
+          if (res1.length() > 0) {
+            res1.deleteCharAt(res1.length() - 1);
+          }
+          return res1.toString().toUpperCase();
+        }
+      } catch (Exception ex) {
+      }
+      return "02:00:00:00:00:00";
     }
 }
