@@ -70,13 +70,32 @@ public class MacAddressPlugin extends CordovaPlugin {
      * @return the mac address
      */
     private String getMacAddress() {
+      try {
+        List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+        for (NetworkInterface nif : all) {
+          if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
 
-        if (Build.VERSION.SDK_INT >= 23) { // Build.VERSION_CODES.M
-            return getMMacAddress();
+          byte[] macBytes = nif.getHardwareAddress();
+          if (macBytes == null) {
+            return "";
+          }
+
+          StringBuilder res1 = new StringBuilder();
+          for (byte b : macBytes) {
+            if (b <15 & b>0){
+              res1.append("0" + Integer.toHexString(b & 0xFF) + ":");
+            } else {
+              res1.append(Integer.toHexString(b & 0xFF) + ":");
+            }
+          }
+          if (res1.length() > 0) {
+            res1.deleteCharAt(res1.length() - 1);
+          }
+          return res1.toString().toUpperCase();
         }
-
-        return getLegacyMacAddress();
-
+      } catch (Exception ex) {
+      }
+      return "02:00:00:00:00:00";
     }
 
     /**
